@@ -39,6 +39,11 @@
   .acts{display:flex;gap:8px;margin-top:10px}
   .acts .btn{padding:6px 12px;font-size:.78rem}
   .del{color:var(--red)}
+  .tabs{display:flex;gap:6px;margin-bottom:20px}
+  .post{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+  .post textarea{width:100%;height:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);
+    border-radius:8px;padding:12px;font:500 16px "Zen Kaku Gothic New",sans-serif;resize:vertical}
+  .post .row{display:flex;justify-content:flex-end;margin-top:10px}
 </style>
 </head>
 <body>
@@ -63,7 +68,7 @@ const view = document.getElementById("view");
 const logoutBtn = document.getElementById("logout");
 logoutBtn.onclick = () => A.signOut(auth);
 
-let unsub = null, reports = [], gameFilter = "すべて", showDone = false;
+let unsub = null, unsubNews = null, reports = [], news = [], gameFilter = "すべて", showDone = false, tab = "bugs", ready = false;
 
 // 送られてくる文章は誰でも書けるので、必ず文字として表示（HTMLとして解釈しない）
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -88,8 +93,46 @@ function deniedView(user) {
   view.append(c);
 }
 
+function tabsBar() {
+  const t = el("div", "tabs");
+  [["bugs", `🐞 バグ報告（${reports.filter(r => !r.done).length}）`], ["news", "📢 お知らせ"]].forEach(([k, l]) => {
+    const b = el("button", "btn" + (tab === k ? " hot" : ""), l);
+    b.onclick = () => { tab = k; render(); };
+    t.append(b);
+  });
+  return t;
+}
+
+function renderNews() {
+  const p = el("div", "post");
+  const ta = document.createElement("textarea"); ta.maxLength = 500;
+  ta.placeholder = "例）マイモンにフレンド交換機能を追加しました！";
+  const row = el("div", "row");
+  const b = el("button", "btn hot", "ハブに掲載する");
+  b.onclick = async () => {
+    const text = ta.value.trim(); if (!text) return;
+    b.disabled = true;
+    try { await F.addDoc(F.collection(db, "news"), { text, createdAt: F.serverTimestamp() }); ta.value = ""; }
+    catch (e) { alert("投稿できませんでした：" + e.message); }
+    b.disabled = false;
+  };
+  row.append(b); p.append(ta, row); view.append(p);
+  if (!news.length) { view.append(el("div", "center", "まだお知らせはありません")); return; }
+  news.forEach(n => {
+    const it = el("div", "item"); it.style.borderLeftColor = "var(--hot)";
+    const meta = el("div", "meta", n.createdAt ? n.createdAt.toDate().toLocaleString("ja-JP") : "投稿中");
+    it.append(meta, el("div", "text", n.text));
+    const acts = el("div", "acts");
+    const x = el("button", "btn del", "削除");
+    x.onclick = () => confirm("このお知らせを消しますか？") && F.deleteDoc(F.doc(db, "news", n.id));
+    acts.append(x); it.append(acts); view.append(it);
+  });
+}
+
 function render() {
   view.innerHTML = "";
+  view.append(tabsBar());
+  if (tab === "news") return renderNews();
   const games = ["すべて", ...new Set(reports.map(r => r.game))];
   const open = reports.filter(r => !r.done).length;
 
@@ -135,14 +178,19 @@ function render() {
 
 A.onAuthStateChanged(auth, user => {
   if (unsub) { unsub(); unsub = null; }
+  if (unsubNews) { unsubNews(); unsubNews = null; }
   logoutBtn.hidden = !user;
   if (!user) return loginView();
+  ready = false;
   view.innerHTML = '<div class="center">読み込み中…</div>';
   const q = F.query(F.collection(db, "bugReports"), F.orderBy("createdAt", "desc"), F.limit(500));
   unsub = F.onSnapshot(q,
-    snap => { reports = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); },
-    err => deniedView(user)   // ルールで弾かれた＝あなた以外
+    snap => { ready = true; reports = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); },
+    err => { ready = false; deniedView(user); }   // ルールで弾かれた＝あなた以外
   );
+  unsubNews = F.onSnapshot(F.query(F.collection(db, "news"), F.orderBy("createdAt", "desc"), F.limit(50)),
+    snap => { news = snap.docs.map(d => ({ id: d.id, ...d.data() })); if (ready) render(); },
+    () => {});
 });
 </script>
 </body>

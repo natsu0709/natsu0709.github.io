@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NATSU.WORKS</title>
+<meta name="description" content="natsuの作ったゲーム・Webサイトまとめ">
+<link rel="manifest" href="manifest.json?v=2">
+<meta name="theme-color" content="#07070b">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NATSU">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Space+Grotesk:wght@500;700&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07070b; --panel:#0f0f17; --text:#f2f2f7; --sub:#8a8aa3; --line:#22222f;
+    --hot:#d4ff3a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden;
+  }
+  /* grain + grid */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:48px 48px;opacity:.35;
+    mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);
+  }
+  body::after{
+    content:"";position:fixed;inset:-50%;pointer-events:none;z-index:100;opacity:.06;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grain 1s steps(4) infinite;
+  }
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 16px}
+  .bar{padding-top:max(20px,env(safe-area-inset-top))!important}
+
+  /* top bar */
+  .bar{display:flex;justify-content:space-between;align-items:center;padding:20px 0;
+    font-family:"Space Grotesk",sans-serif;font-size:.8rem;color:var(--sub);letter-spacing:.12em}
+  .live{display:flex;align-items:center;gap:8px}
+  .live i{width:8px;height:8px;border-radius:50%;background:var(--hot);box-shadow:0 0 12px var(--hot);animation:blink 1.6s infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* hero */
+  .hero{padding:48px 0 32px}
+  .hero h1{
+    font-family:"Dela Gothic One",sans-serif;font-weight:400;
+    font-size:clamp(3.4rem,15vw,9rem);line-height:.88;letter-spacing:-.02em;
+  }
+  .hero h1 .out{color:transparent;-webkit-text-stroke:1.5px var(--text)}
+  .hero h1 .dot{color:var(--hot)}
+  .hero p{margin-top:20px;color:var(--sub);max-width:28em;line-height:1.8}
+  .count{font-family:"Space Grotesk",sans-serif;color:var(--hot);font-weight:700}
+
+  /* marquee */
+  .marquee{position:relative;z-index:1;border-block:1px solid var(--line);overflow:hidden;
+    background:var(--hot);color:var(--bg);transform:rotate(-1.5deg);margin:24px -20px 40px}
+  .marquee div{display:flex;gap:40px;width:max-content;padding:12px 0;
+    font-family:"Dela Gothic One",sans-serif;font-size:1.1rem;white-space:nowrap;
+    animation:scroll 22s linear infinite}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  /* filters */
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+  .filters button{
+    font:700 .85rem "Zen Kaku Gothic New",sans-serif;color:var(--sub);background:var(--panel);
+    border:1px solid var(--line);border-radius:4px;padding:8px 14px;cursor:pointer;transition:.2s
+  }
+  .filters button:hover{color:var(--text);border-color:var(--sub)}
+  .filters button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+  /* cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding-bottom:80px}
+  a.card{
+    position:relative;display:block;text-decoration:none;color:inherit;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    transform-style:preserve-3d;transition:border-color .25s,box-shadow .25s,transform .12s ease-out;
+    opacity:0;animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  a.card:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 20px 60px -20px var(--accent)}
+  .glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+    background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--accent) 22%,transparent),transparent 60%)}
+  a.card:hover .glow{opacity:1}
+
+  .visual{position:relative;height:170px;display:grid;place-items:center;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 120%,color-mix(in srgb,var(--accent) 55%,transparent),transparent 65%),
+      repeating-linear-gradient(-45deg,transparent 0 10px,rgba(255,255,255,.025) 10px 11px)}
+  .visual .emo{font-size:4.6rem;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  a.card:hover .emo{transform:scale(1.15) rotate(-6deg)}
+  .num{position:absolute;top:12px;left:14px;font:700 .8rem "Space Grotesk",sans-serif;color:var(--accent);letter-spacing:.1em}
+  .ext{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;border:1px solid rgba(255,255,255,.15);font-size:.9rem;
+    transition:.25s;background:rgba(0,0,0,.3)}
+  a.card:hover .ext{background:var(--accent);color:#000;border-color:var(--accent);transform:rotate(45deg)}
+
+  .body{padding:18px 20px 20px;border-top:1px solid var(--line)}
+  .name{font-family:"Dela Gothic One",sans-serif;font-size:1.45rem;line-height:1.2}
+  .desc{color:var(--sub);font-size:.9rem;line-height:1.7;margin:8px 0 14px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:3px;
+    color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+
+  /* news */
+  .news{padding:8px 0 72px}
+  .news h2{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:1.6rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .news h2 small{font:700 .7rem "Space Grotesk",sans-serif;color:var(--bg);background:var(--hot);padding:3px 8px;border-radius:3px;letter-spacing:.1em}
+  .news-item{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;padding:16px 0;border-top:1px solid var(--line)}
+  .news-item:last-child{border-bottom:1px solid var(--line)}
+  .news-date{font:700 .8rem "Space Grotesk",sans-serif;color:var(--hot);padding-top:3px;white-space:nowrap}
+  .news-text{line-height:1.8;white-space:pre-wrap;word-break:break-word}
+  .news-empty{color:var(--sub);font-size:.9rem}
+  footer{position:relative;z-index:1;border-top:1px solid var(--line);padding:28px 16px 40px;
+    text-align:center;font:500 .75rem "Space Grotesk",sans-serif;color:var(--sub);letter-spacing:.15em}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    a.card{opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <span>NATSU0709</span>
+    <span class="live"><i></i>NOW PLAYING</span>
+  </div>
+  <section class="hero">
+    <h1>NATSU<span class="dot">.</span><br><span class="out">WORKS</span></h1>
+    <p>個人で作ったゲームとWebサイトのまとめ。<br>全<span class="count" id="count">0</span>作品、ぜんぶブラウザですぐ遊べます。</p>
+  </section>
+</div>
+
+<div class="marquee"><div id="marquee"></div></div>
+
+<div class="wrap">
+  <div class="filters" id="filters"></div>
+  <main class="grid" id="list"></main>
+  <section class="news" id="news" hidden>
+    <h2>お知らせ <small>NEWS</small></h2>
+    <div id="newsList"></div>
+  </section>
+</div>
+<footer>© NATSU0709 — MADE WITH ♥ AND TOO MUCH COFFEE</footer>
+
+<script>
+// ===== ここに作品を追加・編集するだけでOK =====
+const WORKS = [
+  {
+    name: "BANJO!",
+    emoji: "♟️",
+    url: "https://natsu0709.github.io/BANJO/",
+    desc: "将棋・花札・オセロ・五目並べ・チェスを友達とオンライン対戦。",
+    tags: ["ゲーム", "オンライン対戦"],
+    color: "#3dffb0"
+  },
+  {
+    name: "BON! CASINO party",
+    emoji: "🎰",
+    url: "https://natsu0709.github.io/BON-CASINO-PARTY/",
+    desc: "最大6人の部屋でルーレット・ポーカー・BJ・競馬など。通貨はBON。",
+    tags: ["ゲーム", "オンライン対戦"],
+    color: "#ffc93a"
+  },
+  {
+    name: "辛辣診断",
+    emoji: "🦊",
+    url: "https://natsu0709.github.io/Shinratsu/",
+    desc: "欠点だけをズバッと言う辛口性格診断。人間性と恋愛の2種類。",
+    tags: ["診断"],
+    color: "#ff4d8d"
+  },
+  {
+    name: "マイモン",
+    emoji: "🐣",
+    url: "https://natsu0709.github.io/MyMon/",
+    desc: "自分で描いたモンスターが3Dに。育てて、AR撮影して、フレンドと交換しよう。",
+    tags: ["ゲーム"],
+    color: "#8c7bff"
+  },
+];
+// ============================================
+
+const list = document.getElementById("list");
+const filters = document.getElementById("filters");
+const allTags = ["すべて", ...new Set(WORKS.flatMap(w => w.tags))];
+let current = "すべて";
+
+document.getElementById("count").textContent = WORKS.length;
+const mq = WORKS.map(w => `${w.emoji} ${w.name}`).join("　✦　");
+document.getElementById("marquee").innerHTML = `<span>${mq}　✦　${mq}　✦　</span><span>${mq}　✦　${mq}　✦　</span>`;
+
+function render(){
+  list.innerHTML = "";
+  WORKS.filter(w => current === "すべて" || w.tags.includes(current)).forEach((w, i) => {
+    const a = document.createElement("a");
+    a.className = "card"; a.href = w.url; a.target = "_blank"; a.rel = "noopener";
+    a.style.setProperty("--accent", w.color);
+    a.style.animationDelay = `${i * 80}ms`;
+    a.innerHTML = `
+      <div class="glow"></div>
+      <div class="visual">
+        <span class="num">NO.${String(WORKS.indexOf(w)+1).padStart(2,"0")}</span>
+        <span class="ext">↗</span>
+        <span class="emo">${w.emoji}</span>
+      </div>
+      <div class="body">
+        <div class="name">${w.name}</div>
+        <div class="desc">${w.desc}</div>
+        <div class="tags">${w.tags.map(t=>`<span class="tag">#${t}</span>`).join("")}</div>
+      </div>`;
+    // マウス追従の光＋傾き（PCのみ）
+    a.addEventListener("pointermove", e => {
+      if (e.pointerType !== "mouse") return;
+      const r = a.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      a.style.setProperty("--mx", x + "px"); a.style.setProperty("--my", y + "px");
+      const rx = ((y / r.height) - .5) * -6, ry = ((x / r.width) - .5) * 6;
+      a.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+    });
+    a.addEventListener("pointerleave", () => { a.style.transform = ""; });
+    list.appendChild(a);
+  });
+  [...filters.children].forEach(b => b.classList.toggle("on", b.textContent === current));
+}
+allTags.forEach(t => {
+  const b = document.createElement("button");
+  b.textContent = t; b.onclick = () => { current = t; render(); };
+  filters.appendChild(b);
+});
+render();
+
+// お知らせ（admin.html から投稿したものを表示）
+(async () => {
+  try {
+    const { firebaseConfig, SDK } = await import("./bug-config.js");
+    const { initializeApp } = await import(`${SDK}/firebase-app.js`);
+    const F = await import(`${SDK}/firebase-firestore.js`);
+    const db = F.getFirestore(initializeApp(firebaseConfig, "news"));
+    const snap = await F.getDocs(F.query(F.collection(db, "news"), F.orderBy("createdAt", "desc"), F.limit(10)));
+    const box = document.getElementById("newsList");
+    if (snap.empty) return;
+    snap.forEach(d => {
+      const n = d.data();
+      const row = document.createElement("div"); row.className = "news-item";
+      const date = document.createElement("div"); date.className = "news-date";
+      date.textContent = n.createdAt ? n.createdAt.toDate().toLocaleDateString("ja-JP") : "";
+      const text = document.createElement("div"); text.className = "news-text";
+      text.textContent = n.text;   // 文字として表示
+      row.append(date, text); box.append(row);
+    });
+    document.getElementById("news").hidden = false;
+  } catch (e) { console.warn("news", e); }
+})();
+
+// ホーム画面インストール用
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
