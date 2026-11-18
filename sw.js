@@ -1,6 +1,6 @@
 // オフラインでもハブが開けるようにするService Worker
-const CACHE = "natsu-hub-v6";
-const FILES = ["./", "./index.html", "./banjo.jpg", "./bon.jpg", "./shinratsu.jpg", "./mymon.jpg", "./godmemo.jpg", "./kokoku.jpg", "./yourpalette.jpg", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "natsu-hub-v7";
+const FILES = ["./", "./index.html", "./banjo.jpg", "./bon.jpg", "./shinratsu.jpg", "./mymon.jpg", "./godmemo.jpg", "./kokoku.jpg", "./yourpalette.jpg", "./thewhite.jpg", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
   self.skipWaiting();
